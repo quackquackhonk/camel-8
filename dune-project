@@ -1,27 +1,20 @@
 (lang dune 3.17)
 
-(name template)
+(name camel-8)
 
 (generate_opam_files true)
 (opam_file_location inside_opam_directory)
 
 (source
- (github username/reponame))
+ (github quackquackhonk/camel-8))
 
-(authors "Author Name <author@example.com>")
+(authors "Sahana Tankala <sahanatankala@gmail.com>")
 
-(maintainers "Maintainer Name <maintainer@example.com>")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
+(maintainers "Sahana Tankala <sahanatankala@gmail.com>")
 
 (package
- (name template)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml)
- (tags
-  ("add topics" "to describe" your project)))
+ (name camel-8)
+ (synopsis "A Chip-8 interpreter in OCaml")
+ (depends ocaml))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

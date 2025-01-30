@@ -1,2 +1,5 @@
 (library
- (name template))
+ (name camel-8)
+ (libraries re ppx_inline_test ppx_deriving)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test ppx_deriving.show)))
