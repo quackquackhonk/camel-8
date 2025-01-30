@@ -32,19 +32,11 @@
           ocamlPackages.ocaml
           # the dune build system
           ocamlPackages.dune_3
-
-          # If you're on NixOS, you'll probably want this (See: https://nixos.wiki/wiki/OCaml#Findlib.2C_ocamlfind)
-          # ocamlPackages.findlib
-
-          # Additionally, add any development packages you want
-          # A fancy REPL...
+          ocamlPackages.findlib
           # ocamlPackages.utop
-          # Editor integration...
-          # ocamlPackages.merlin
-          # ocamlPackages.lsp
-          # Formatting...
-          # ocamlPackages.ocamlformat
-          # ocamlPackages.ocp-indent
+          ocamlPackages.lsp
+          ocamlPackages.ocamlformat
+          ocamlPackages.ocp-indent
         ];
       in
       {
