@@ -26,6 +26,7 @@
 
         buildInputs = [
           ocamlPackages.findlib
+          ocamlPackages.stdint
           ocamlPackages.ppx_deriving
           ocamlPackages.ppx_inline_test
         ];
@@ -35,8 +36,7 @@
           # the dune build system
           ocamlPackages.dune_3
           ocamlPackages.findlib
-          # ocamlPackages.utop
-          ocamlPackages.lsp
+          ocamlPackages.ocaml-lsp
           ocamlPackages.ocamlformat
           ocamlPackages.ocp-indent
         ];
@@ -44,7 +44,7 @@
       {
         packages = {
           default = ocamlPackages.buildDunePackage {
-            pname = "template";
+            pname = "camel8";
             version = "0.0.0";
             duneVersion = "3";
             src = ./.;

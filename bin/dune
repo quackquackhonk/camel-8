@@ -1,4 +1,4 @@
 (executable
- (public_name template)
+ (public_name camel8)
  (name main)
- (libraries template))
+ (libraries camel8))

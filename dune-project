@@ -1,6 +1,6 @@
 (lang dune 3.17)
 
-(name camel-8)
+(name camel8)
 
 (generate_opam_files true)
 (opam_file_location inside_opam_directory)
@@ -13,7 +13,7 @@
 (maintainers "Sahana Tankala <sahanatankala@gmail.com>")
 
 (package
- (name camel-8)
+ (name camel8)
  (synopsis "A Chip-8 interpreter in OCaml")
  (depends ocaml))
 

@@ -1,0 +1,5 @@
+
+* Tasks [0/3]
+** TODO Hardware layout [/]
+** TODO Fetching / Parsing instructions [/]
+** TODO Fetch / Decode / Execute loop [/]

@@ -1,1 +1,1 @@
-# Camel-8: A Chip-8 Interpretor in OCaml
+# Camel-8: A Chip-8 Interpreter in OCaml
