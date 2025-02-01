@@ -27,8 +27,9 @@
         buildInputs = [
           ocamlPackages.findlib
           ocamlPackages.stdint
+          ocamlPackages.ppxlib
           ocamlPackages.ppx_deriving
-          ocamlPackages.ppx_inline_test
+          ocamlPackages.alcotest
         ];
 
         nativeBuildInputs = with pkgs; [
@@ -36,6 +37,7 @@
           # the dune build system
           ocamlPackages.dune_3
           ocamlPackages.findlib
+          ocamlPackages.utop
           ocamlPackages.ocaml-lsp
           ocamlPackages.ocamlformat
           ocamlPackages.ocp-indent

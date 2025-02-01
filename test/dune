@@ -1,2 +1,6 @@
 (test
  (name test_template))
+
+(test
+ (name test_lib_binary)
+ (libraries camel8 stdint alcotest))

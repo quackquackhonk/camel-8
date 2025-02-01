@@ -1,5 +1,6 @@
 (library
  (name camel8)
- (libraries stdint ppx_inline_test ppx_deriving)
- (inline_tests)
- (preprocess (pps ppx_inline_test ppx_deriving.show)))
+ (libraries stdint ppx_deriving)
+ (preprocess (pps ppx_deriving.show)))
+
+(env (dev (flags (:standard -warn-error -A))))
