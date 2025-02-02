@@ -34,10 +34,9 @@
 
         nativeBuildInputs = with pkgs; [
           ocamlPackages.ocaml
-          # the dune build system
           ocamlPackages.dune_3
-          ocamlPackages.findlib
           ocamlPackages.utop
+          ocamlPackages.findlib
           ocamlPackages.ocaml-lsp
           ocamlPackages.ocamlformat
           ocamlPackages.ocp-indent

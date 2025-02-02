@@ -1,3 +1,3 @@
 type cpu
 
-val init : unit -> cpu
+val init_cpu : unit -> cpu

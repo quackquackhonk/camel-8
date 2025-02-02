@@ -10,9 +10,9 @@ type cpu = {
     sound_timer: uint8;
   }
 
-let init _ = {
+let init_cpu _ = {
     memory = Memory.init ();
-    variables = Register.init ();
+    variables = Register.init_bank ();
     pc = Uint16.zero;
     index = Uint16.zero;
     stack = [];
