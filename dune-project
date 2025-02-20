@@ -15,6 +15,6 @@
 (package
  (name camel8)
  (synopsis "A Chip-8 interpreter in OCaml")
- (depends ocaml (alcotest :with-test)))
+ (depends ocaml (alcotest :with-test) unix))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

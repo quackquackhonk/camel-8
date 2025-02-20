@@ -1,4 +1,3 @@
-(* A module with functions to test *)
 open Camel8
 open Stdint
 

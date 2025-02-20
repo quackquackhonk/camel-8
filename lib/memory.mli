@@ -1,3 +1,15 @@
-type t
+open Stdint
 
-val init : unit -> t
+type t
+type address = uint16
+type error
+
+exception Memory_error of string
+
+val memory_size : int
+val instruction_start : int
+
+val init : bytes -> t
+
+val read : t -> address -> char
+val write : t -> address -> char -> unit

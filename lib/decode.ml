@@ -36,9 +36,17 @@ type instruction =
 | WriteMemory of Register.address
 | ReadMemory of Register.address
 
-type decode_error =
-  Invalid of int * int * uint16
-| InvalidSubcode of int * int * uint16
+type error =
+  InvalidNN of int * int * uint16
+| InvalidBinop of int * uint16
+
+exception Decode_error of string
+
+let fmt_err e =
+  match e with
+    InvalidNN (op, code, bin) -> Printf.sprintf "%x: %x is not a valid code for opcode %x" (Uint16.to_int bin) code op
+  | InvalidBinop (sub, bin) -> Printf.sprintf "%x: %x is not a valid subcode for binops" (Uint16.to_int bin) sub
+
 
 let get_opcode bin = Binary.first_nibble bin |> Uint16.to_int
 let get_n bin = Binary.fourth_nibble bin |> Uint16.to_int
@@ -49,7 +57,7 @@ let get_nnn bin =
   let mask = Uint16.of_int 0x0FFF in
   Uint16.logand mask bin
 
-let decode_instruction bin =
+let decode_res bin =
   let opcode = get_opcode bin in
   let x = Uint16.to_int @@ Binary.second_nibble bin in
   let y = Uint16.to_int @@ Binary.third_nibble bin in
@@ -59,7 +67,7 @@ let decode_instruction bin =
   match (opcode, subcode) with
     (0x0, 0x0) -> Ok Clear
   | (0x0, 0xE) -> Ok Return
-  | (0x0, _) -> Error (Invalid (opcode, subcode, bin))
+  | (0x0, _) -> Error (InvalidNN (opcode, subcode, bin))
   | (0x1, _) -> Ok (Jump (nnn))
   | (0x2, _) -> Ok (CallSubroutine (nnn))
   | (0x3, _) -> Ok (IfNotEqualXN (x, nn))
@@ -77,7 +85,7 @@ let decode_instruction bin =
   | (0x8, 0x6) -> Ok (ShiftRight (x, y))
   | (0x8, 0x7) -> Ok (Sub (y, x))
   | (0x8, 0xE) -> Ok (ShiftLeft (x, y))
-  | (0x8, _) -> Error (InvalidSubcode (opcode, subcode, bin))
+  | (0x8, _) -> Error (InvalidBinop (subcode, bin))
   | (0x9, _) -> Ok (IfEqualXY (x, y))
 
   | (0xA, _) -> Ok (SetIndex (nnn))
@@ -89,7 +97,7 @@ let decode_instruction bin =
       match Uint8.to_int nn with
         0x9E -> Ok (IfKeyPressed (x))
       | 0xA1 -> Ok (IfKeyNotPressed (x))
-      | nn -> Error (Invalid (opcode, nn, bin))
+      | nn -> Error (InvalidNN (opcode, nn, bin))
       end
   (* Special / Misc instructions *)
   | (0xF, _) -> begin
@@ -103,6 +111,11 @@ let decode_instruction bin =
       | 0x33 -> Ok (BinToDec (x))
       | 0x55 -> Ok (WriteMemory (x))
       | 0x65 -> Ok (ReadMemory (x))
-      | nn -> Error (Invalid (opcode, nn, bin))
+      | nn -> Error (InvalidNN (opcode, nn, bin))
     end
-  | _ -> Error (Invalid (opcode, subcode, bin))
+  | _ -> Error (InvalidNN (opcode, subcode, bin))
+
+let decode bin =
+  match decode_res bin with
+    Ok i -> i
+  | Error e -> raise (Decode_error (fmt_err e))

@@ -13,6 +13,10 @@ let get_nibble nib bin =
   let shift = Uint16.bits - (4 * (nib + 1)) in
   Uint16.shift_right_logical unshifted shift
 
+let uint16_to_bytes = if Sys.big_endian
+                      then Uint16.to_bytes_big_endian
+                      else Uint16.to_bytes_little_endian
+
 let first_nibble  = get_nibble 0
 let second_nibble = get_nibble 1
 let third_nibble  = get_nibble 2
