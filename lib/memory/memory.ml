@@ -1,9 +1,6 @@
 open Stdint
 
 type t = bytes
-type address = uint16
-
-type error = ProgramTooLarge of int
 
 exception Memory_error of string
 
@@ -16,12 +13,16 @@ let valid_program size =
   then let msg = Printf.sprintf "program size %d > memory size %d" size max_prog_size in
        raise (Memory_error msg)
 
-let init prog =
-  let _ = valid_program (Bytes.length prog) in
+let create prog =
+  let progl = Bytes.length prog in
+  let _ = valid_program progl in
   let mem = Bytes.init memory_size (fun _ -> Char.chr 0) in
+  let _ = Bytes.blit prog 0 mem instruction_start progl in
   mem
 
+(*TODO: unimplemented*)
+let read_byte mem addr = Uint8.zero
+let write_byte mem ~addr ~data = ()
 
-let read mem addr = Char.chr 0
-
-let write mem addr data = ()
+let read_word mem addr = Uint16.zero
+let write_word mem ~addr ~data = ()

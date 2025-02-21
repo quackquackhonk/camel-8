@@ -13,8 +13,8 @@ let speclist =
 
 let main _ =
   let prog_bytes = Bytes.make 0 (Char.chr 0) in
-  let cpu = Cpu.init_cpu prog_bytes in
-  Cpu.run cpu
+  let emu = Emu.create prog_bytes in
+  Emu.run emu
 
 
 let () =
