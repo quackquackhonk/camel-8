@@ -30,6 +30,8 @@
           ocamlPackages.ppxlib
           ocamlPackages.ppx_deriving
           ocamlPackages.alcotest
+          ocamlPackages.lwt
+          ocamlPackages.lambda-term
         ];
 
         nativeBuildInputs = with pkgs; [
