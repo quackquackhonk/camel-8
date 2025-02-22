@@ -27,6 +27,9 @@ let get_register cpu ~reg = Register.get cpu.regs ~reg
 let set_register cpu ~reg ~data =
   let bank = Register.set cpu.regs ~reg ~data in
   { cpu with regs = bank }
+let set_carry cpu carry =
+  { cpu with regs = Register.set_carry cpu.regs carry }
+
 
 let get_index cpu       = cpu.index
 let set_index cpu ~data = {cpu with index = data }
@@ -58,5 +61,5 @@ let binop cpu op ~x ~y =
     | ShiftLeft -> Uint8.zero <> Binary.byte_msb yv
     | ShiftRight -> Uint8.zero <> Binary.byte_lsb yv
   in
-  { cpu with regs = Register.set_carry cpu.regs carry }
+  set_carry cpu carry
   |> set_register ~reg:x ~data:res

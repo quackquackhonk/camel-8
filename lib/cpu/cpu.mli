@@ -18,6 +18,7 @@ val set_pc : t -> uint16 -> t
 
 val get_register : t -> reg:Hex.t -> Stdint.uint8
 val set_register : t -> reg:Hex.t -> data:Stdint.uint8 -> t
+val set_carry : t -> bool -> t
 
 val get_index : t -> Stdint.uint16
 val set_index : t -> data:Stdint.uint16 -> t

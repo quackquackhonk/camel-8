@@ -27,8 +27,7 @@ let execute emu inst =
   let open Printf in
   match inst with
     MachineRoutine i -> Next (* TODO: Skipping for now... *)
-  | Clear -> emu.display <- Display.create ();
-             Next
+  | Clear -> emu.display <- Display.create (); Next
   | Jump t -> Goto t
   | JumpOffset off -> raise (Failure "unimplemented")
   | CallSubroutine rout -> raise (Failure "unimplemented")
@@ -51,7 +50,14 @@ let execute emu inst =
                     emu.cpu <- Cpu.set_index emu.cpu ~data;
                     Next
   | Random (x, n) -> raise (Failure "random")
-  | Display (x, y, n) -> raise (Failure "display")
+  | Display (x, y, n) ->
+     let xv = Cpu.get_register emu.cpu ~reg:x in
+     let yv = Cpu.get_register emu.cpu ~reg:y in
+     let s = Memory.read_byte emu.ram emu.cpu.index in
+     let (d, c) = Display.draw emu.display ~x:xv ~y:yv ~s ~n in
+     emu.cpu <- Cpu.set_carry emu.cpu c;
+     emu.display <- d;
+     Next
   | IfKeyPressed x -> raise (Failure "key pressed")
   | IfKeyNotPressed x -> raise (Failure "key not pressed")
   | GetDelayTimer x -> raise (Failure "get delay")
@@ -78,7 +84,7 @@ let rec update emu ~cycles =
       update ~cycles:(cycles - 1) emu
     end
 
-let render _ = ()
+let render emu = ()
 
 let run emu  =
   while true do
