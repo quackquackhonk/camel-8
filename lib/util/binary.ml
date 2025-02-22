@@ -21,3 +21,11 @@ let first_nibble  = get_nibble 0
 let second_nibble = get_nibble 1
 let third_nibble  = get_nibble 2
 let fourth_nibble = get_nibble 3
+
+let byte_msb b =
+  let mask = Uint8.of_int 0b10000000 in
+  Uint8.logand b mask
+
+let byte_lsb b =
+  let mask = Uint8.of_int 0b00000001 in
+  Uint8.logand b mask

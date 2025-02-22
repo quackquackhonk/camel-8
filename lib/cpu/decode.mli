@@ -1,5 +1,18 @@
 open Stdint
 
+type cond = EqN of uint8
+          | NEqN of uint8
+          | EqR of Register.address
+          | NEqR of Register.address
+
+type binop = Add
+           | Sub
+           | OR
+           | AND
+           | XOR
+           | ShiftLeft
+           | ShiftRight
+
 type instruction =
   MachineRoutine of int
 | Clear
@@ -7,20 +20,11 @@ type instruction =
 | JumpOffset of uint16
 | CallSubroutine of uint16
 | Return
-| IfEqualXN of Register.address * uint8
-| IfNotEqualXN of Register.address * uint8
-| IfEqualXY of Register.address * Register.address
-| IfNotEqualXY of Register.address * Register.address
+| If of Register.address * cond
 | SetN of Register.address * uint8
 | AddN of Register.address * uint8
 | SetXY of Register.address * Register.address
-| OR of Register.address * Register.address
-| AND of Register.address * Register.address
-| XOR of Register.address * Register.address
-| Add of Register.address * Register.address
-| Sub of Register.address * Register.address
-| ShiftLeft of Register.address * Register.address
-| ShiftRight of Register.address * Register.address
+| Binop of binop * Register.address * Register.address
 | SetIndex of uint16
 | AddIndex of Register.address
 | Random of Register.address * uint8

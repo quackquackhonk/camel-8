@@ -1,5 +1,18 @@
 open Stdint
 
+type cond = EqN of uint8
+          | NEqN of uint8
+          | EqR of Register.address
+          | NEqR of Register.address
+
+type binop = Add
+           | Sub
+           | OR
+           | AND
+           | XOR
+           | ShiftLeft
+           | ShiftRight
+
 type instruction =
   MachineRoutine of int
 | Clear
@@ -7,20 +20,11 @@ type instruction =
 | JumpOffset of uint16
 | CallSubroutine of uint16
 | Return
-| IfEqualXN of Register.address * uint8
-| IfNotEqualXN of Register.address * uint8
-| IfEqualXY of Register.address * Register.address
-| IfNotEqualXY of Register.address * Register.address
+| If of Register.address * cond
 | SetN of Register.address * uint8
 | AddN of Register.address * uint8
 | SetXY of Register.address * Register.address
-| OR of Register.address * Register.address
-| AND of Register.address * Register.address
-| XOR of Register.address * Register.address
-| Add of Register.address * Register.address
-| Sub of Register.address * Register.address
-| ShiftLeft of Register.address * Register.address
-| ShiftRight of Register.address * Register.address
+| Binop of binop * Register.address * Register.address
 | SetIndex of uint16
 | AddIndex of Register.address
 | Random of Register.address * uint8
@@ -59,8 +63,8 @@ let get_nnn bin =
 
 let decode_res bin =
   let opcode = get_opcode bin in
-  let x = Uint16.to_int @@ Binary.second_nibble bin in
-  let y = Uint16.to_int @@ Binary.third_nibble bin in
+  let x = Binary.second_nibble bin |> Uint16.to_int |> Hex.of_int in
+  let y = Binary.third_nibble bin |> Uint16.to_int |> Hex.of_int in
   let nnn = get_nnn bin in
   let nn = get_nn bin in
   let subcode = get_n bin in
@@ -70,23 +74,23 @@ let decode_res bin =
   | (0x0, _) -> Error (InvalidNN (opcode, subcode, bin))
   | (0x1, _) -> Ok (Jump (nnn))
   | (0x2, _) -> Ok (CallSubroutine (nnn))
-  | (0x3, _) -> Ok (IfNotEqualXN (x, nn))
-  | (0x4, _) -> Ok (IfEqualXN (x, nn))
-  | (0x5, _) -> Ok (IfNotEqualXY (x, y))
+  | (0x3, _) -> Ok (If (x, NEqN nn))
+  | (0x4, _) -> Ok (If (x, EqN nn))
+  | (0x5, _) -> Ok (If (x, NEqR y))
   | (0x6, _) -> Ok (SetN (x, nn))
   | (0x7, _) -> Ok (AddN (x, nn))
   (* Binary instruction *)
   | (0x8, 0x0) -> Ok (SetXY (x, y))
-  | (0x8, 0x1) -> Ok (OR (x, y))
-  | (0x8, 0x2) -> Ok (AND (x, y))
-  | (0x8, 0x3) -> Ok (XOR (x, y))
-  | (0x8, 0x4) -> Ok (Add (x, y))
-  | (0x8, 0x5) -> Ok (Sub (x, y))
-  | (0x8, 0x6) -> Ok (ShiftRight (x, y))
-  | (0x8, 0x7) -> Ok (Sub (y, x))
-  | (0x8, 0xE) -> Ok (ShiftLeft (x, y))
+  | (0x8, 0x1) -> Ok (Binop (OR, x, y))
+  | (0x8, 0x2) -> Ok (Binop (AND, x, y))
+  | (0x8, 0x3) -> Ok (Binop (XOR, x, y))
+  | (0x8, 0x4) -> Ok (Binop (Add, x, y))
+  | (0x8, 0x5) -> Ok (Binop (Sub, x, y))
+  | (0x8, 0x6) -> Ok (Binop (ShiftRight, x, y))
+  | (0x8, 0x7) -> Ok (Binop (Sub, y, x))
+  | (0x8, 0xE) -> Ok (Binop (ShiftLeft, x, y))
   | (0x8, _) -> Error (InvalidBinop (subcode, bin))
-  | (0x9, _) -> Ok (IfEqualXY (x, y))
+  | (0x9, _) -> Ok (If (x, EqR y))
 
   | (0xA, _) -> Ok (SetIndex (nnn))
   | (0xB, _) -> Ok (JumpOffset (nnn))

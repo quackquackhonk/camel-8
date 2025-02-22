@@ -14,3 +14,8 @@ val third_nibble  : uint16 -> uint16
 (** [third_nibble] [bin] returns the third 4 bits of [bin], shifted right into the least significant bits.*)
 val fourth_nibble : uint16 -> uint16
 (** [fourth_nibble] [bin] returns the last 4 bits of [bin].*)
+
+val byte_msb : uint8 -> uint8
+(** [byte_msb b] returns the leftmost bit of [b]. *)
+val byte_lsb : uint8 -> uint8
+(** [byte_lsb b] returns the rightmost bit of [b]. *)
