@@ -1,6 +1,6 @@
 (library
  (name camel8)
- (libraries stdint ppx_deriving unix)
+ (libraries stdint ppx_deriving unix lwt lambda-term)
  (preprocess (pps ppx_deriving.show)))
 
 (include_subdirs unqualified)
@@ -11,6 +11,5 @@
    (:standard
      -warn-error -A ;; warnings are not errors
      -w -69         ;; disable unused field
-     -w -32         ;; disable unused value declaration
      -w -27         ;; disable unused variable
 ))))

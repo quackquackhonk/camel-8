@@ -2,7 +2,7 @@
   description = "OCaml Template";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -11,7 +11,7 @@
   };
 
   outputs =
-    {
+    inputs@{
       self,
       nixpkgs,
       flake-utils,
@@ -24,7 +24,7 @@
 
         ocamlPackages = pkgs.ocamlPackages;
 
-        buildInputs = [
+        buildInputs = with pkgs; [
           ocamlPackages.findlib
           ocamlPackages.stdint
           ocamlPackages.ppxlib
@@ -32,7 +32,7 @@
           ocamlPackages.alcotest
           ocamlPackages.lwt
           ocamlPackages.lambda-term
-        ];
+       ];
 
         nativeBuildInputs = with pkgs; [
           ocamlPackages.ocaml

@@ -8,8 +8,10 @@ bug-reports: "https://github.com/quackquackhonk/camel-8/issues"
 depends: [
   "dune" {>= "3.17"}
   "ocaml"
-  "alcotest" {with-test}
   "unix"
+  "lwt"
+  "lambda-term"
+  "alcotest" {with-test}
   "odoc" {with-doc}
 ]
 build: [

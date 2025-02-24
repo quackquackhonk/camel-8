@@ -2,6 +2,8 @@ open Stdint
 
 type t = uint64 array
 
+let leftmost_bit = Uint64.of_string "0x8000000000000000"
+
 let create () = Array.make 32 Uint64.zero
 
 let draw_sprite d ~x ~y ~s =
@@ -31,3 +33,13 @@ let draw d ~x ~y ~s ~n =
     display := d
   done;
   (!display, !carry)
+
+let to_string d =
+  let get_pixel row c =
+    let mask = Uint64.shift_right_logical leftmost_bit c in
+    let has_pixel = Uint64.logand row mask <> Uint64.zero in
+    if has_pixel then 'X' else '.'
+  in
+  let draw_row row = Seq.init 64 (get_pixel row) |> String.of_seq in
+  let strs = Array.map draw_row d in
+  Array.fold_left (fun a b -> a ^ "\n" ^ b) "" strs
