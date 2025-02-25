@@ -1,0 +1,8 @@
+
+* Tasks [0/3]
+** STARTED Hardware data structure [0/2]
+- State "STARTED"    from "TODO"       [2025-01-31 Fri 18:43]
+*** TODO Instruction type
+*** TODO Register type
+** TODO Fetching / Parsing instructions [/]
+** TODO Fetch / Decode / Execute loop [/]
