@@ -6,7 +6,7 @@ module type ByteS = sig
   (* reads 8-bit data from address addr *)
   val read_byte : t -> uint16 -> uint8
   (* writes 8-bit data to address addr *)
-  val write_byte : t -> addr:uint16 -> data:uint8 -> unit
+  val write_byte : t -> addr:uint16 -> data:char -> unit
 end
 
 (** Interface that provide 16-bit read/write *)

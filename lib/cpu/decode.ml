@@ -65,59 +65,52 @@ let decode_res bin =
   let opcode = get_opcode bin in
   let x = Binary.second_nibble bin |> Uint16.to_int |> Hex.of_int in
   let y = Binary.third_nibble bin |> Uint16.to_int |> Hex.of_int in
+  let n = get_n bin in
   let nnn = get_nnn bin in
   let nn = get_nn bin in
-  let subcode = get_n bin in
-  match (opcode, subcode) with
-    (0x0, 0x0) -> Ok Clear
-  | (0x0, 0xE) -> Ok Return
-  | (0x0, _) -> Error (InvalidNN (opcode, subcode, bin))
-  | (0x1, _) -> Ok (Jump (nnn))
-  | (0x2, _) -> Ok (CallSubroutine (nnn))
-  | (0x3, _) -> Ok (If (x, NEqN nn))
-  | (0x4, _) -> Ok (If (x, EqN nn))
-  | (0x5, _) -> Ok (If (x, NEqR y))
-  | (0x6, _) -> Ok (SetN (x, nn))
-  | (0x7, _) -> Ok (AddN (x, nn))
+  match (opcode, Uint8.to_int nn, n) with
+  | (0x0, 0xE0, _) -> Ok Clear
+  | (0x0, 0xEE, _) -> Ok Return
+  | (0x0, _, _) -> Error (InvalidNN (opcode, n, bin))
+  | (0x1, _, _) -> Ok (Jump (nnn))
+  | (0x2, _, _) -> Ok (CallSubroutine (nnn))
+  | (0x3, _, _) -> Ok (If (x, NEqN nn))
+  | (0x4, _, _) -> Ok (If (x, EqN nn))
+  | (0x5, _, _) -> Ok (If (x, NEqR y))
+  | (0x6, _, _) -> Ok (SetN (x, nn))
+  | (0x7, _, _) -> Ok (AddN (x, nn))
   (* Binary instruction *)
-  | (0x8, 0x0) -> Ok (SetXY (x, y))
-  | (0x8, 0x1) -> Ok (Binop (OR, x, y))
-  | (0x8, 0x2) -> Ok (Binop (AND, x, y))
-  | (0x8, 0x3) -> Ok (Binop (XOR, x, y))
-  | (0x8, 0x4) -> Ok (Binop (Add, x, y))
-  | (0x8, 0x5) -> Ok (Binop (Sub, x, y))
-  | (0x8, 0x6) -> Ok (Binop (ShiftRight, x, y))
-  | (0x8, 0x7) -> Ok (Binop (Sub, y, x))
-  | (0x8, 0xE) -> Ok (Binop (ShiftLeft, x, y))
-  | (0x8, _) -> Error (InvalidBinop (subcode, bin))
-  | (0x9, _) -> Ok (If (x, EqR y))
-
-  | (0xA, _) -> Ok (SetIndex (nnn))
-  | (0xB, _) -> Ok (JumpOffset (nnn))
-  | (0xC, _) -> Ok (Random (x, nn))
-  | (0xD, _) -> Ok (Display (x, y, subcode))
+  | (0x8, _, 0x0) -> Ok (SetXY (x, y))
+  | (0x8, _, 0x1) -> Ok (Binop (OR, x, y))
+  | (0x8, _, 0x2) -> Ok (Binop (AND, x, y))
+  | (0x8, _, 0x3) -> Ok (Binop (XOR, x, y))
+  | (0x8, _, 0x4) -> Ok (Binop (Add, x, y))
+  | (0x8, _, 0x5) -> Ok (Binop (Sub, x, y))
+  | (0x8, _, 0x6) -> Ok (Binop (ShiftRight, x, y))
+  | (0x8, _, 0x7) -> Ok (Binop (Sub, y, x))
+  | (0x8, _, 0xE) -> Ok (Binop (ShiftLeft, x, y))
+  | (0x8, _, _) -> Error (InvalidBinop (n, bin))
+  | (0x9, _, _) -> Ok (If (x, EqR y))
+  | (0xA, _, _) -> Ok (SetIndex (nnn))
+  | (0xB, _, _) -> Ok (JumpOffset (nnn))
+  | (0xC, _, _) -> Ok (Random (x, nn))
+  | (0xD, _, _) -> Ok (Display (x, y, n))
   (* Keycode instructions *)
-  | (0xE, _) -> begin
-      match Uint8.to_int nn with
-        0x9E -> Ok (IfKeyPressed (x))
-      | 0xA1 -> Ok (IfKeyNotPressed (x))
-      | nn -> Error (InvalidNN (opcode, nn, bin))
-      end
+  | (0xE, 0x9E, _) -> Ok (IfKeyPressed (x))
+  | (0xE, 0xA1, _) -> Ok (IfKeyNotPressed (x))
+  | (0xE, nn, _) -> Error (InvalidNN (opcode, nn, bin))
   (* Special / Misc instructions *)
-  | (0xF, _) -> begin
-      match Uint8.to_int nn with
-        0x07 -> Ok (GetDelayTimer (x))
-      | 0x15 -> Ok (SetDelayTimer (x))
-      | 0x18 -> Ok (SetSoundTimer (x))
-      | 0x1E -> Ok (AddIndex (x))
-      | 0x0A -> Ok (GetKey (x))
-      | 0x29 -> Ok (FontChar (x))
-      | 0x33 -> Ok (BinToDec (x))
-      | 0x55 -> Ok (WriteMemory (x))
-      | 0x65 -> Ok (ReadMemory (x))
-      | nn -> Error (InvalidNN (opcode, nn, bin))
-    end
-  | _ -> Error (InvalidNN (opcode, subcode, bin))
+  | (0xF, 0x07, _) -> Ok (GetDelayTimer (x))
+  | (0xF, 0x15, _) -> Ok (SetDelayTimer (x))
+  | (0xF, 0x18, _) -> Ok (SetSoundTimer (x))
+  | (0xF, 0x1E, _) -> Ok (AddIndex (x))
+  | (0xF, 0x0A, _) -> Ok (GetKey (x))
+  | (0xF, 0x29, _) -> Ok (FontChar (x))
+  | (0xF, 0x33, _) -> Ok (BinToDec (x))
+  | (0xF, 0x55, _) -> Ok (WriteMemory (x))
+  | (0xF, 0x65, _) -> Ok (ReadMemory (x))
+  | (0xF, nn, _) -> Error (InvalidNN (opcode, nn, bin))
+  | _ -> Error (InvalidNN (opcode, n, bin))
 
 let decode bin =
   match decode_res bin with

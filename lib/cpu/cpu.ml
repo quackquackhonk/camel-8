@@ -20,7 +20,7 @@ let create () = {
     sound_timer = Uint8.zero;
   }
 
-let incr_pc cpu = { cpu with pc = Uint16.(cpu.pc + one) }
+let incr_pc cpu = { cpu with pc = Uint16.(cpu.pc + one + one) }
 let set_pc cpu n = { cpu with pc = n }
 
 let get_register cpu ~reg = Register.get cpu.regs ~reg

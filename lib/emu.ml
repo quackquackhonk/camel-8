@@ -74,6 +74,6 @@ let update ?key emu =
   let inst = Decode.decode inst in
   (* execute instruction *)
   let (e, j) = execute ?key emu inst in
-  handle_jump emu j
+  handle_jump e j
 
 let render emu = ()

@@ -42,6 +42,7 @@
           ocamlPackages.ocaml-lsp
           ocamlPackages.ocamlformat
           ocamlPackages.ocp-indent
+          ocamlPackages.odoc
         ];
       in
       {
