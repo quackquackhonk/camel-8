@@ -56,7 +56,6 @@ let impl emu =
     screen_label#set_text @@ Display.to_string !state.emu.display;
     ram_view_label#set_text @@ make_mem_view !state.emu
   in
-
   ignore (Lwt_engine.on_timer (1.0 /. 60.0) true tick);
 
   (* Setup the keyboard handling for the hbox*)

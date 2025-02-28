@@ -48,11 +48,15 @@ let execute ?key emu inst =
                            let e = {emu with cpu = Cpu.set_index emu.cpu ~data} in
                            (e, Next)
   | Random (x, n)       -> raise (Failure "random")
-  | Display (x, y, n)   -> let xv = Cpu.get_register emu.cpu ~reg:x in
-                           let yv = Cpu.get_register emu.cpu ~reg:y in
-                           let s = Memory.read_byte emu.ram emu.cpu.index in
-                           let (d, c) = Display.draw emu.display ~x:xv ~y:yv ~s ~n in
-                           let e = {emu with cpu = Cpu.set_carry emu.cpu c; display = d} in
+  | Display (x, y, n)   -> let emu = { emu with cpu = Cpu.set_carry emu.cpu false } in
+                           let x = Cpu.get_register emu.cpu ~reg:x in
+                           let y = Cpu.get_register emu.cpu ~reg:y in
+                           let get_sprite x = Memory.read_byte emu.ram Uint16.(emu.cpu.index + of_int x) in
+                           let sprite = List.init n get_sprite in
+                           let _ = Printf.printf "sprite to draw at %d, %d\n" (Uint8.to_int x) (Uint8.to_int y) in
+                           let _ = List.iter (fun x -> Printf.printf "%s\n" @@ Uint8.to_string_bin x) sprite in
+                           let (d, c) = Display.draw emu.display ~x ~y ~sprite in
+                           let e = { emu with cpu = Cpu.set_carry emu.cpu c; display = d } in
                            (e, Next)
   | IfKeyPressed x      -> raise (Failure "key pressed")
   | IfKeyNotPressed x   -> raise (Failure "key not pressed")
@@ -69,7 +73,6 @@ let update ?key emu =
   let open Printf in
   (* FETCH instruction *)
   let inst = Memory.read_word emu.ram emu.cpu.pc in
-  let _ = printf "PC: %s - Instruction %s\n" (Uint16.to_string_hex emu.cpu.pc) (Uint16.to_string_hex inst) in
   (* decode instruction *)
   let inst = Decode.decode inst in
   (* execute instruction *)

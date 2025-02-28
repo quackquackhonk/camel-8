@@ -39,19 +39,17 @@ let dump ?(offset = 0) mem pc =
   in
   let diff = e - s in
   let acc = ref "" in
-  try
-    for o = 0 to diff do
-      let addr = Uint16.of_int (s + (o * 2)) in
-      let pref = if addr = pc then "*" else " " in
-      let x = read_word mem addr in
-      let line = Printf.sprintf "%s %s: %s\n"
-                   pref
-                   (Hex.uint16_to_hex_string addr)
-                   (Hex.uint16_to_hex_string x)
-      in
-      acc := !acc ^ line
-    done;
-    !acc
+  try for o = 0 to diff do
+        let addr = Uint16.of_int (s + (o * 2)) in
+        let pref = if addr = pc then "*" else " " in
+        let x = read_word mem addr in
+        let line = Printf.sprintf "%s %s: %s\n" pref
+                     (Hex.uint16_to_hex_string addr)
+                     (Hex.uint16_to_hex_string x)
+        in
+        acc := !acc ^ line
+      done;
+      !acc
   with Invalid_argument msg -> !acc
 
 let create prog =
