@@ -24,8 +24,6 @@ let read_word mem addr =
   Int.(logor (shift_left fst_byte 8) snd_byte)
   |> Uint16.of_int
 
-
-
 let write_word mem ~addr ~data =
   let set = if Sys.big_endian
             then Uint16.to_bytes_big_endian
@@ -33,22 +31,32 @@ let write_word mem ~addr ~data =
   in
   set data mem (Uint16.to_int addr)
 
-let dump ?window mem =
-  let (s, e) = match window with
-    | None -> (0, Bytes.length mem / 2)
-    | Some (w_s, w_e) -> (w_s, w_e)
+let dump ?(offset = 0) mem pc =
+  let pci = Uint16.to_int pc in
+  let (s, e) = if offset <= 0
+               then (0, Bytes.length mem / 2)
+               else (pci - offset, pci + offset)
   in
   let diff = e - s in
-  for o = 0 to diff do
-    let off = Uint16.of_int (s + (o * 2)) in
-    let x = read_word mem off in
-    print_endline @@ Uint16.to_string_hex x
-  done
+  let acc = ref "" in
+  try
+    for o = 0 to diff do
+      let addr = Uint16.of_int (s + (o * 2)) in
+      let pref = if addr = pc then "*" else " " in
+      let x = read_word mem addr in
+      let line = Printf.sprintf "%s %s: %s\n"
+                   pref
+                   (Hex.uint16_to_hex_string addr)
+                   (Hex.uint16_to_hex_string x)
+      in
+      acc := !acc ^ line
+    done;
+    !acc
+  with Invalid_argument msg -> !acc
 
 let create prog =
   let progl = Bytes.length prog in
   let _ = valid_program progl in
   let mem = Bytes.init memory_size (fun _ -> Char.chr 0) in
   let _ = Bytes.blit prog 0 mem instruction_start progl in
-  dump ~window:(0x200, 0x20F) mem;
   mem
