@@ -48,7 +48,6 @@ let dump ?(offset = 0) mem pc =
   in
   List.map make_line addrs
   |> List.filter (fun s -> s <> "")
-  |> String.concat "\n"
 
 let create prog =
   let progl = Bytes.length prog in
