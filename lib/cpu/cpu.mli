@@ -27,3 +27,5 @@ val get_delay : t -> Stdint.uint8
 
 val set_delay : t -> data:Stdint.uint8 -> t
 val set_sound : t -> data:Stdint.uint8 -> t
+
+val pretty : t -> string

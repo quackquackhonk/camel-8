@@ -30,7 +30,6 @@ let set_register cpu ~reg ~data =
 let set_carry cpu carry =
   { cpu with regs = Register.set_carry cpu.regs carry }
 
-
 let get_index cpu       = cpu.index
 let set_index cpu ~data = {cpu with index = data }
 
@@ -63,3 +62,5 @@ let binop cpu op ~x ~y =
   in
   set_carry cpu carry
   |> set_register ~reg:x ~data:res
+
+let pretty cpu = ""

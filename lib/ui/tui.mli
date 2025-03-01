@@ -1,2 +1,2 @@
 
-val run : Emu.t -> unit
+val run : ?debug:bool -> Emu.t -> unit

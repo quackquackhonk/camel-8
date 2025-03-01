@@ -14,8 +14,8 @@ let speclist =
 let () =
   Arg.parse speclist anon_fun usage_msg;
   try let prog_bytes = Io.get_bytes !rom in
-      let emu = Emu.create prog_bytes  in
-      Tui.run emu
+      let emu = Emu.create prog_bytes in
+      Tui.run ~debug:!debug emu
   with Decode.Decode_error msg ->
         Printf.printf "Error decoding an instruction:\n\t%s\n" msg
      | Sys_error msg ->

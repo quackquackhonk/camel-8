@@ -53,8 +53,6 @@ let execute ?key emu inst =
                            let y = Cpu.get_register emu.cpu ~reg:y in
                            let get_sprite x = Memory.read_byte emu.ram Uint16.(emu.cpu.index + of_int x) in
                            let sprite = List.init n get_sprite in
-                           let _ = Printf.printf "sprite to draw at %d, %d\n" (Uint8.to_int x) (Uint8.to_int y) in
-                           let _ = List.iter (fun x -> Printf.printf "%s\n" @@ Uint8.to_string_bin x) sprite in
                            let (d, c) = Display.draw emu.display ~x ~y ~sprite in
                            let e = { emu with cpu = Cpu.set_carry emu.cpu c; display = d } in
                            (e, Next)

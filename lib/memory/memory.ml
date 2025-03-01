@@ -33,24 +33,22 @@ let write_word mem ~addr ~data =
 
 let dump ?(offset = 0) mem pc =
   let pci = Uint16.to_int pc in
-  let (s, e) = if offset <= 0
+  let (s, num) = if offset <= 0
                then (0, Bytes.length mem / 2)
-               else (pci - offset, pci + offset)
+               else (pci - offset, offset * 2 + 1)
   in
-  let diff = e - s in
-  let acc = ref "" in
-  try for o = 0 to diff do
-        let addr = Uint16.of_int (s + (o * 2)) in
+  (* Create list of addresses *)
+  let addrs = List.init num (fun a -> s + a) in
+  let make_line addr =
+    try let addr = Uint16.of_int addr in
         let pref = if addr = pc then "*" else " " in
         let x = read_word mem addr in
-        let line = Printf.sprintf "%s %s: %s\n" pref
-                     (Hex.uint16_to_hex_string addr)
-                     (Hex.uint16_to_hex_string x)
-        in
-        acc := !acc ^ line
-      done;
-      !acc
-  with Invalid_argument msg -> !acc
+        Printf.sprintf "%s %s: %s" pref (Hex.uint16_to_hex_string addr) (Hex.uint16_to_hex_string x)
+    with Invalid_argument msg -> ""
+  in
+  List.map make_line addrs
+  |> List.filter (fun s -> s <> "")
+  |> String.concat "\n"
 
 let create prog =
   let progl = Bytes.length prog in

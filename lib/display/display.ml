@@ -9,16 +9,12 @@ let create () = Array.make 32 Uint64.zero
 let draw_sprite d ~x ~y ~s =
   let row = Array.get d y in
   (* Function for shifting the sprite into position
-     0                                     64
-     [                                     ]
-
      Initial sprite:
      0                             55     63
      v                             v      v
      [                             ssssssss]
 
-     If x is > thresh, shift right, otherwise shift left
-
+     If x is > 55, shift right, otherwise shift left
    *)
   let adjust sprite =
     let thresh = 63 - 8 in
@@ -27,7 +23,6 @@ let draw_sprite d ~x ~y ~s =
     else Uint64.shift_left sprite (thresh - x)
   in
   let sprite = adjust @@ Uint64.of_uint8 s in
-  (* let _ = Printf.printf "%s\n" @@ Uint64.to_string_bin sprite in *)
   let mask = adjust @@ Uint64.of_uint8 (Uint8.max_int) in
   let new_row = Uint64.logxor row sprite in
   Array.set d y new_row;
