@@ -40,12 +40,17 @@ let draw d ~x ~y ~sprite =
     display := d) sprite;
   (!display, !carry)
 
-let to_string d =
+let to_bool_array d =
   let get_pixel row c =
     let mask = Uint64.shift_right_logical leftmost_bit c in
-    let has_pixel = Uint64.logand row mask <> Uint64.zero in
-    if has_pixel then 'X' else '.'
+    Uint64.logand row mask <> Uint64.zero
   in
-  let draw_row row = Seq.init 64 (get_pixel row) |> String.of_seq in
-  let strs = Array.map draw_row d |> Array.to_list in
-  String.concat "\n" strs
+  let draw_row row = Seq.init 64 (get_pixel row) |> Array.of_seq in
+  Array.map draw_row d
+
+let to_string d =
+  let pxs = to_bool_array d in
+  let get_pixel b = if b then 'X' else '.' in
+  Array.map (fun row -> Array.map get_pixel row |> Array.to_seq |> String.of_seq) pxs
+  |> Array.to_list
+  |> String.concat "\n"

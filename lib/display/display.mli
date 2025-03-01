@@ -9,4 +9,6 @@ val draw : t -> x:uint8 -> y:uint8 -> sprite:uint8 list -> t * bool
     at position [x] x [y], returning the new display and a flag indicating any
     bits turned off.*)
 
+val to_bool_array : t -> bool array array
+
 val to_string : t -> string
