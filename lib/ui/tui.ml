@@ -1,9 +1,9 @@
 open Emu
 
 open Lwt
+open LTerm_geom
+open LTerm_text
 open LTerm_key
-open LTerm_widget
-
 
 (* GLOBALS *)
 type state = {
@@ -11,72 +11,52 @@ type state = {
     key: Uchar.t option
   }
 
-let handler state kill event = begin
-    match event with
+
+let rec handler ui state =
+  LTerm_ui.wait ui >>= function
     (* Exit on C-c *)
     | LTerm_event.Key { code = LTerm_key.Char c; control = true; _ } ->
        if c = Uchar.of_char 'c'
-       then kill()
-       else state := { !state with key = Some c }
+       then return ()
+       else handler ui state
     (* Set key to any other pressed keys *)
     | LTerm_event.Key { code = LTerm_key.Char c; _ } ->
-       state := { !state with key = Some c }
+       handler ui state
     (* Don't do anything on other events *)
-    | x -> ()
-  end; false
+    | x -> handler ui state
+
+let draw ui matrix state =
+  let ui_size = LTerm_ui.size ui in
+  let ctx = LTerm_draw.context matrix ui_size in
+  LTerm_draw.clear ctx;
+  LTerm_draw.draw_frame_labelled
+    ctx
+    { row1 = 0; col1 = 0; row2 = ui_size.rows; col2 = ui_size.cols }
+    ~alignment:H_align_center
+    (Zed_string.of_utf8 "weeee")
+    LTerm_draw.Light;
+  if ui_size.rows > 32 && ui_size.cols > 64 then begin
+    let ctx = LTerm_draw.sub ctx { row1 = 1; col1 = 1; row2 = ui_size.rows - 1; col2 = ui_size.cols - 1 } in
+    LTerm_draw.draw_styled ctx 0 0 (eval [B_fg LTerm_style.lblue; S (Display.to_string state.emu.display); E_fg])
+  end
+
 
 let impl ~debug emu =
+  (* Setup *)
+
   (* Wrap the emulator in a ref *)
   let state = ref { emu = emu; key = None } in
 
-  (* Setup *)
-  let waiter, wakener = wait () in
-  let main_box = new hbox in
-
-  (* Screen objects*)
-  let screen_label = new label (Display.to_string !state.emu.display) in
-  let screen = new modal_frame in
-  screen#set_label "Screen";
-  screen#set screen_label;
-
-  (* View of the emulator state*)
-  let make_mem_view e = Memory.dump ~offset:8 e.ram e.cpu.pc in
-  let ram_view_label = new label (make_mem_view !state.emu) in
-  let ram_view = new frame in
-  ram_view#set ram_view_label;
-  let cpu_view_label = new label (Cpu.pretty !state.emu.cpu) in
-  let cpu_view = new frame in
-  cpu_view#set cpu_view_label;
-  let emu_box = new vbox in
-  emu_box#add cpu_view_label;
-  emu_box#add ram_view_label;
-
-
-  let emu_view = new frame in
-  emu_view#set_label "Emulator State";
-  emu_view#set emu_box;
-
-  (* Add everything to the main box *)
-  main_box#add screen;
-  main_box#add emu_view;
-
-  (* Update the emulator state every 1/60th of a second. *)
-  let tick _ =
-    state := { !state with emu = Emu.update ~key:!state.key !state.emu};
-    screen_label#set_text @@ Display.to_string !state.emu.display;
-    ram_view_label#set_text @@ make_mem_view !state.emu;
-    cpu_view_label#set_text @@ Cpu.pretty !state.emu.cpu
-  in
-  ignore (Lwt_engine.on_timer (1.0 /. 60.0) true tick);
-
-  (* Setup the keyboard handling for the hbox*)
-  main_box#on_event (handler state (wakeup wakener));
 
   (* Run in the standard terminal. *)
   Lazy.force LTerm.stdout >>= fun term ->
-  LTerm.enable_mouse term >>= fun () ->
-  Lwt.finalize
-    (fun () -> run term main_box waiter)
-    (fun () -> LTerm.disable_mouse term)
+  LTerm_ui.create term (fun ui matrix -> draw ui matrix !state)
+  >>= fun ui ->
+
+  (* Update the emulator state every 1/60th of a second. *)
+  let tick _ = state := { !state with emu = Emu.update ~key:!state.key !state.emu};
+               LTerm_ui.draw ui in
+  ignore (Lwt_engine.on_timer (1.0 /. 60.0) true tick);
+  Lwt.finalize (fun () -> handler ui state) (fun () -> LTerm_ui.quit ui)
 
 let run ?debug emu = Lwt_main.run (impl emu ~debug)

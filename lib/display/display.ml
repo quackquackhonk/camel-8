@@ -47,5 +47,5 @@ let to_string d =
     if has_pixel then 'X' else '.'
   in
   let draw_row row = Seq.init 64 (get_pixel row) |> String.of_seq in
-  let strs = Array.map draw_row d in
-  Array.fold_left (fun a b -> a ^ "\n" ^ b) "" strs
+  let strs = Array.map draw_row d |> Array.to_list in
+  String.concat "\n" strs
