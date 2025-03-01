@@ -18,3 +18,16 @@ let set_carry bank carry =
   let data = if carry then Uint8.one else Uint8.zero in
   set bank ~reg:Hex.F ~data
 let get_carry bank = Uint8.zero <> get bank ~reg:Hex.F
+
+let pretty bank =
+  let open Printf in
+  let regs = [Hex.Zero; Hex.One; Hex.Two; Hex.Three; Hex.Four;
+              Hex.Five; Hex.Six; Hex.Seven; Hex.Eight; Hex.Nine;
+              Hex.A; Hex.B; Hex.C; Hex.D; Hex.E; Hex.F]
+  in
+  let fmt a =
+    let v = if HexMap.mem a bank then HexMap.find a bank else Uint8.zero in
+    let s = if v = Uint8.zero then "0b00000000" else sprintf "%s" (Uint8.to_string_bin v) in
+    sprintf "v%s: %s" (Hex.to_string a) s
+  in
+  List.map fmt regs

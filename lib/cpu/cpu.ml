@@ -63,4 +63,10 @@ let binop cpu op ~x ~y =
   set_carry cpu carry
   |> set_register ~reg:x ~data:res
 
-let pretty cpu = ""
+let pretty_stack ?(max_addrs = Int.max_int) cpu =
+  let rec pretty_stack' acc = function
+    | [] -> acc
+    | x :: xs -> if List.length acc >= max_addrs - 1
+                 then "[....]" :: acc
+                 else pretty_stack' (Hex.uint16_to_hex_string x :: acc) xs
+  in pretty_stack' [] cpu.stack

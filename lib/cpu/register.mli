@@ -12,3 +12,5 @@ val get : bank -> reg:address -> uint8
 
 val set_carry : bank -> bool -> bank
 val get_carry : bank -> bool
+
+val pretty : bank -> string list

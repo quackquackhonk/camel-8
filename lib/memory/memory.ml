@@ -31,7 +31,7 @@ let write_word mem ~addr ~data =
   in
   set data mem (Uint16.to_int addr)
 
-let dump ?(offset = 0) mem pc =
+let pretty ?(offset = 0) mem pc =
   let pci = Uint16.to_int pc in
   let (s, num) = if offset <= 0
                then (0, Bytes.length mem / 2)
@@ -41,7 +41,7 @@ let dump ?(offset = 0) mem pc =
   let addrs = List.init num (fun a -> s + a) in
   let make_line addr =
     try let addr = Uint16.of_int addr in
-        let pref = if addr = pc then "*" else " " in
+        let pref = if addr = pc then ">" else " " in
         let x = read_word mem addr in
         Printf.sprintf "%s %s: %s" pref (Hex.uint16_to_hex_string addr) (Hex.uint16_to_hex_string x)
     with Invalid_argument msg -> ""
