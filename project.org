@@ -1,7 +1,17 @@
 
 * Tasks
 ** TODO Allow for stepping through the emulator state
-** TODO Implement the rest of the instruction set
+** STARTED Implement the rest of the instruction set
+- State "STARTED"    from "TODO"       [2025-03-03 Mon 18:43]
 ** TODO Finish the update logic
 we need to decrement the timers still
-** TODO Find other testing ROMs
+** TODO Add config opstions [/]
+*** implement a config file option, parsing, etc
+*** Add configurability to ambiguous functions
+~Code~ options are the default
+- [ ] ~BNNN~ vs. BXNN
+  ~BNNN~: Jump to address of ~v0 + NNN~
+  BXNN: Jump to address of ~vX + NN~
+- [ ]
+** DONE Find other testing ROMs
+- State "DONE"       from "TODO"       [2025-03-03 Mon 18:43]

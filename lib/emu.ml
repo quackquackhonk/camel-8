@@ -26,7 +26,8 @@ let execute ?key emu inst =
     MachineRoutine i    -> (emu, Next) (* TODO: Skipping for now... *)
   | Clear               -> ({ emu with display = Display.create ()}, Next)
   | Jump t              -> (emu, Goto t)
-  | JumpOffset off      -> raise (Failure "unimplemented")
+  | JumpOffset off      -> let v0 = Cpu.get_register emu.cpu ~reg:Hex.Zero in
+                           (emu, Goto Uint16.(of_uint8 v0 + off))
   | CallSubroutine addr -> let e = { emu with cpu = Cpu.stack_push emu.cpu addr } in
                            (e, Goto addr)
   | Return              -> let (addr, cpu) = Cpu.stack_pop emu.cpu in
@@ -49,7 +50,10 @@ let execute ?key emu inst =
                            let data = Uint16.(emu.cpu.index + (Uint8.to_uint16 xv)) in
                            let e = {emu with cpu = Cpu.set_index emu.cpu ~data} in
                            (e, Next)
-  | Random (x, n)       -> raise (Failure "random")
+  | Random (x, n)       -> let num = Random.full_int 256 |> Uint8.of_int in
+                           let num = Uint8.logand num n in
+                           let emu = { emu with cpu = Cpu.set_register emu.cpu ~reg:x ~data:num } in
+                           (emu, Next)
   | Display (x, y, n)   -> let emu = { emu with cpu = Cpu.set_carry emu.cpu false } in
                            let x = Cpu.get_register emu.cpu ~reg:x in
                            let y = Cpu.get_register emu.cpu ~reg:y in
