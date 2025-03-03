@@ -1,0 +1,7 @@
+
+* Tasks
+** TODO Allow for stepping through the emulator state
+** TODO Implement the rest of the instruction set
+** TODO Finish the update logic
+we need to decrement the timers still
+** TODO Find other testing ROMs
