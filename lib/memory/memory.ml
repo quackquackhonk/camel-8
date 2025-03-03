@@ -43,7 +43,7 @@ let pretty ?(offset = 0) mem pc =
     try let addr = Uint16.of_int addr in
         let pref = if addr = pc then ">" else " " in
         let x = read_word mem addr in
-        Printf.sprintf "%s %s: %s" pref (Hex.uint16_to_hex_string addr) (Hex.uint16_to_hex_string x)
+        Printf.sprintf "%s %s: %s" pref (Pretty.uint16_to_hex_string addr) (Pretty.uint16_to_hex_string x)
     with Invalid_argument msg -> ""
   in
   List.map make_line addrs

@@ -73,16 +73,6 @@ let of_int = function
   | x -> raise (Failure ("Invalid Hex digit: " ^ (string_of_int x)))
 
 
-let uint16_to_hex_string n =
-  let open Binary in
-  let convert f n = f n |> Uint16.to_int |> of_int |> to_string in
-  Printf.sprintf "0x%s%s%s%s"
-    (convert first_nibble n)
-    (convert second_nibble n)
-    (convert third_nibble n)
-    (convert fourth_nibble n)
-
-
 let compare l r =
   let li = to_int l in
   let ri = to_int r in
