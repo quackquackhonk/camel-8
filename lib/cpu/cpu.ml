@@ -37,6 +37,19 @@ let get_delay cpu       = cpu.delay_timer
 let set_delay cpu ~data = { cpu with delay_timer = data }
 let set_sound cpu ~data = { cpu with sound_timer = data }
 
+let stack_push cpu addr = { cpu with stack = addr :: cpu.stack }
+let stack_pop cpu =
+  let (addr, stack) = (List.hd cpu.stack, List.tl cpu.stack) in
+  (addr, { cpu with stack = stack })
+
+let pretty_stack ?(max_addrs = Int.max_int) cpu =
+  let rec pretty_stack' acc = function
+    | [] -> acc
+    | x :: xs -> if List.length acc >= max_addrs - 1
+                 then "[....]" :: acc
+                 else pretty_stack' (Pretty.uint16_to_hex_string x :: acc) xs
+  in pretty_stack' [] cpu.stack
+
 let binop cpu op ~x ~y =
   let xv = get_register cpu ~reg:x in
   let yv = get_register cpu ~reg:y in
@@ -62,11 +75,3 @@ let binop cpu op ~x ~y =
   in
   set_carry cpu carry
   |> set_register ~reg:x ~data:res
-
-let pretty_stack ?(max_addrs = Int.max_int) cpu =
-  let rec pretty_stack' acc = function
-    | [] -> acc
-    | x :: xs -> if List.length acc >= max_addrs - 1
-                 then "[....]" :: acc
-                 else pretty_stack' (Hex.uint16_to_hex_string x :: acc) xs
-  in pretty_stack' [] cpu.stack

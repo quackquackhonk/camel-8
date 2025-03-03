@@ -6,13 +6,13 @@ type t = {
     display: Display.t;
   }
 
+type jump = Next | Skip | Goto of uint16
+
 let create prog = {
     cpu = Cpu.create ();
     ram = Memory.create prog;
     display = Display.create ();
   }
-
-type jump = Next | Skip | Goto of uint16
 
 let handle_jump emu jump =
   match jump with
@@ -22,14 +22,16 @@ let handle_jump emu jump =
 
 let execute ?key emu inst =
   let open Decode in
-  let open Printf in
   match inst with
     MachineRoutine i    -> (emu, Next) (* TODO: Skipping for now... *)
   | Clear               -> ({ emu with display = Display.create ()}, Next)
   | Jump t              -> (emu, Goto t)
   | JumpOffset off      -> raise (Failure "unimplemented")
-  | CallSubroutine rout -> raise (Failure "unimplemented")
-  | Return              -> raise (Failure "unimplemented")
+  | CallSubroutine addr -> let e = { emu with cpu = Cpu.stack_push emu.cpu addr } in
+                           (e, Goto addr)
+  | Return              -> let (addr, cpu) = Cpu.stack_pop emu.cpu in
+                           let e = { emu with cpu = cpu } in
+                           (e, Goto addr)
   | If (x, c)           -> raise (Failure "IF unimplemented")
   | SetN (x, n)         -> let e = { emu with cpu = Cpu.set_register emu.cpu ~reg:x ~data:n} in
                            (e, Next)
@@ -68,7 +70,6 @@ let execute ?key emu inst =
   | ReadMemory x        -> raise (Failure "read")
 
 let update ?key emu =
-  let open Printf in
   (* FETCH instruction *)
   let inst = Memory.read_word emu.ram emu.cpu.pc in
   (* decode instruction *)
