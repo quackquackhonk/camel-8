@@ -1,5 +1,4 @@
 open Emu
-open Stdint
 
 open Lwt
 open LTerm_geom
@@ -128,10 +127,10 @@ let draw_cpu ctx size state =
   let misc_rect = { row1 = misc_start_y; row2 = total_size.rows - 1;
                     col1 = reg_start_x; col2 = registers_size.cols + reg_start_x + 2 } in
   let misc_ctx = draw_frame ctx "Misc" misc_rect in
-  let lines = [ Printf.sprintf "   PC: %s" (Uint16.to_string_bin state.emu.cpu.pc);
-                Printf.sprintf "Index: %s" (Uint16.to_string_bin state.emu.cpu.index);
-                Printf.sprintf "Sound: %s" (Uint8.to_string_bin state.emu.cpu.delay_timer);
-                Printf.sprintf "Delay: %s" (Uint8.to_string_bin state.emu.cpu.sound_timer) ]
+  let lines = [ Printf.sprintf "   PC: %s" (Pretty.uint16_to_bin_string state.emu.cpu.pc);
+                Printf.sprintf "Index: %s" (Pretty.uint16_to_bin_string state.emu.cpu.index);
+                Printf.sprintf "Sound: %s" (Pretty.uint8_to_bin_string state.emu.cpu.delay_timer);
+                Printf.sprintf "Delay: %s" (Pretty.uint8_to_bin_string state.emu.cpu.sound_timer) ]
   in
   let draw_misc i line =
     LTerm_draw.draw_styled misc_ctx (i + 1) 1 (eval [B_fg LTerm_style.lwhite; S line; E_fg]) in

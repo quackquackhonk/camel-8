@@ -26,8 +26,11 @@ let pretty bank =
               Hex.A; Hex.B; Hex.C; Hex.D; Hex.E; Hex.F]
   in
   let fmt a =
-    let v = if HexMap.mem a bank then HexMap.find a bank else Uint8.zero in
-    let s = if v = Uint8.zero then "0b00000000" else sprintf "%s" (Uint8.to_string_bin v) in
+    let v = if HexMap.mem a bank
+            then HexMap.find a bank
+            else Uint8.zero
+    in
+    let s = Pretty.uint8_to_bin_string v in
     sprintf "v%s: %s" (Hex.to_string a) s
   in
   List.map fmt regs

@@ -5,6 +5,7 @@ type t = bytes
 exception Memory_error of string
 
 let memory_size = 4096
+let font_start = 0x050
 let instruction_start = 0x200
 
 let valid_program size =
@@ -53,5 +54,9 @@ let create prog =
   let progl = Bytes.length prog in
   let _ = valid_program progl in
   let mem = Bytes.init memory_size (fun _ -> Char.chr 0) in
+  (* Load the font into memory *)
+  let fontl = Bytes.length Font.font in
+  let _= Bytes.blit Font.font 0 mem font_start fontl in
+  (* Load the program *)
   let _ = Bytes.blit prog 0 mem instruction_start progl in
   mem

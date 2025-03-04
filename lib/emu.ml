@@ -33,7 +33,6 @@ let execute ?key emu inst =
   | Return              -> let (addr, cpu) = Cpu.stack_pop emu.cpu in
                            let e = { emu with cpu = cpu } in
                            (e, Goto addr)
-  | If (x, c)           -> raise (Failure "IF unimplemented")
   | SetN (x, n)         -> let e = { emu with cpu = Cpu.set_register emu.cpu ~reg:x ~data:n} in
                            (e, Next)
   | AddN (x, n)         -> let xv = Cpu.get_register emu.cpu ~reg:x in
@@ -62,6 +61,15 @@ let execute ?key emu inst =
                            let (d, c) = Display.draw emu.display ~x ~y ~sprite in
                            let e = { emu with cpu = Cpu.set_carry emu.cpu c; display = d } in
                            (e, Next)
+  | If (x, c)           -> let xv = Cpu.get_register emu.cpu ~reg:x in
+                           let cmp = begin match c with
+                                     | EqN r    -> fun l -> Uint8.(l = r)
+                                     | NEqN r   -> fun l -> Uint8.(l <> r)
+                                     | EqR reg  -> fun l -> Uint8.(l = (Cpu.get_register emu.cpu ~reg))
+                                     | NEqR reg -> fun l -> Uint8.(l <> (Cpu.get_register emu.cpu ~reg))
+                                     end in
+                           let jump = if cmp xv then Skip else Next in
+                           (emu, jump)
   | IfKeyPressed x      -> raise (Failure "key pressed")
   | IfKeyNotPressed x   -> raise (Failure "key not pressed")
   | GetDelayTimer x     -> raise (Failure "get delay")
