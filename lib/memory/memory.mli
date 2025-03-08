@@ -6,6 +6,7 @@ exception Memory_error of string
 
 val memory_size : int
 val instruction_start : int
+val font_start : int
 
 val create : bytes -> t
 

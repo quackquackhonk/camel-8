@@ -1,4 +1,5 @@
 (executable
  (public_name camel8)
  (name main)
+ (modes byte exe)
  (libraries camel8))

@@ -7,8 +7,40 @@ open LTerm_key
 
 type state = {
     emu: Emu.t;
-    key: Uchar.t option
+    key: Hex.t option
   }
+
+module CharMap = Map.Make(Char)
+(* 1234
+   qwfp
+   arst
+   xcdv
+ *)
+let mappings =
+  CharMap.empty
+  |> CharMap.add '1' Hex.One
+  |> CharMap.add '2' Hex.Two
+  |> CharMap.add '3' Hex.Three
+  |> CharMap.add '4' Hex.C
+  |> CharMap.add 'q' Hex.Four
+  |> CharMap.add 'w' Hex.Five
+  |> CharMap.add 'f' Hex.Six
+  |> CharMap.add 'p' Hex.D
+  |> CharMap.add 'a' Hex.Seven
+  |> CharMap.add 'r' Hex.Eight
+  |> CharMap.add 's' Hex.Nine
+  |> CharMap.add 't' Hex.E
+  |> CharMap.add 'x' Hex.A
+  |> CharMap.add 'c' Hex.Zero
+  |> CharMap.add 'v' Hex.B
+  |> CharMap.add 'd' Hex.F
+
+
+let get_key c =
+  let c = Uchar.to_char c in
+  CharMap.find_opt c mappings
+
+
 
 let rec handler ui state =
   LTerm_ui.wait ui >>= function
@@ -19,12 +51,13 @@ let rec handler ui state =
        else handler ui state
     (* Set key to any other pressed keys *)
     | LTerm_event.Key { code = LTerm_key.Char c; _ } ->
+       let k = get_key c in
+       state := { !state with key =  k };
        handler ui state
     (* Don't do anything on other events *)
     | x -> handler ui state
 
 (* DRAWING CONSTANTS
-
                                    1     1 1       1                  1
    1+----------------------------+ +-----+ +-------+------------------+
     |           64               | | 18  | |   8   |       31         |
@@ -140,6 +173,7 @@ let draw_cpu ctx size state =
 let draw ui matrix state =
   let size = LTerm_ui.size ui in
   let ctx = LTerm_draw.context matrix size in
+  let _ = LTerm_draw.clear ctx in
   if size.rows < total_size.rows || size.cols < total_size.cols then
     LTerm_draw.draw_styled ctx 0 0 (eval [B_fg LTerm_style.lblue; S "Screen size is too small!"; E_fg])
   else
@@ -157,7 +191,6 @@ let draw ui matrix state =
                       col2 = screen_frame_size.cols + 1 + memory_frame_size.cols + 1 + cpu_frame_size.cols
                     }
     in
-    LTerm_draw.clear ctx;
     draw_screen screen_ctx size state;
     draw_memory memory_ctx size state;
     draw_cpu cpu_ctx size state
@@ -176,6 +209,7 @@ let impl ~debug emu =
   let tick _ = state := { !state with emu = Emu.update ~key:!state.key !state.emu};
                LTerm_ui.draw ui in
   ignore (Lwt_engine.on_timer (1.0 /. 60.0) true tick);
-  Lwt.finalize (fun () -> handler ui state) (fun () -> LTerm_ui.quit ui)
+  try Lwt.finalize (fun () -> handler ui state) (fun () -> LTerm_ui.quit ui)
+  with Failure _ -> LTerm_ui.quit ui
 
 let run ?debug emu = Lwt_main.run (impl emu ~debug)
