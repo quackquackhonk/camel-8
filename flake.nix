@@ -1,65 +1,55 @@
 {
-  description = "OCaml Template";
-
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    systems.url = "github:nix-systems/default";
-    flake-utils = {
-      url = "github:numtide/flake-utils";
-      inputs.systems.follows = "systems";
-    };
+    opam-nix.url = "github:tweag/opam-nix";
+    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.follows = "opam-nix/nixpkgs";
   };
-
   outputs =
-    inputs@{
+    {
       self,
-      nixpkgs,
       flake-utils,
-      ...
-    }:
+      opam-nix,
+      nixpkgs,
+    }@inputs:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        # setup
         pkgs = nixpkgs.legacyPackages.${system};
+        on = opam-nix.lib.${system};
 
-        ocamlPackages = pkgs.ocamlPackages;
-
-        buildInputs = with pkgs; [
-          ocamlPackages.findlib
-          ocamlPackages.stdint
-          ocamlPackages.ppxlib
-          ocamlPackages.ppx_deriving
-          ocamlPackages.alcotest
-          ocamlPackages.lwt
-          ocamlPackages.lambda-term
-       ];
-
-        nativeBuildInputs = with pkgs; [
-          ocamlPackages.ocaml
-          ocamlPackages.dune_3
-          ocamlPackages.utop
-          ocamlPackages.findlib
-          ocamlPackages.ocaml-lsp
-          ocamlPackages.ocamlformat
-          ocamlPackages.ocp-indent
-          ocamlPackages.odoc
-        ];
-      in
-      {
-        packages = {
-          default = ocamlPackages.buildDunePackage {
-            pname = "camel8";
-            version = "0.0.0";
-            duneVersion = "3";
-            src = ./.;
-
-            strictDeps = true;
-
-            inherit nativeBuildInputs buildInputs;
-          };
+        localPackagesQuery = builtins.mapAttrs (_: pkgs.lib.last) (on.listRepo (on.makeOpamRepo ./.));
+        devPackagesQuery = {
+          # You can add "development" packages here. They will get added to the devShell automatically.
+          ocaml-lsp-server = "*";
+          ocamlformat = "*";
+        };
+        query = devPackagesQuery // {
+          # build packages here
+          ocaml-base-compiler = "*";
         };
 
-        devShells.default = pkgs.mkShell { inherit nativeBuildInputs buildInputs; };
+        scope = on.buildOpamProject' { } ./. query;
+        overlay = final: prev: {
+          # You can add overrides here
+        };
+        scope' = scope.overrideScope overlay;
+        # Packages from devPackagesQuery
+        devPackages = builtins.attrValues (pkgs.lib.getAttrs (builtins.attrNames devPackagesQuery) scope');
+        # Packages in this workspace
+        packages = pkgs.lib.getAttrs (builtins.attrNames localPackagesQuery) scope';
+      in
+      {
+        legacyPackages = scope';
+
+        inherit packages;
+
+        devShells.default = pkgs.mkShell {
+          inputsFrom = builtins.attrValues packages;
+          buildInputs = devPackages ++ [
+            # You can add packages from nixpkgs here
+          ];
+        };
       }
     );
 }

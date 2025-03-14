@@ -1,7 +1,6 @@
 (library
  (name camel8)
- (libraries stdint ppx_deriving unix lwt lambda-term)
- (preprocess (pps ppx_deriving.show)))
+ (libraries stdint bogue lwt lambda-term))
 
 (include_subdirs unqualified)
 
