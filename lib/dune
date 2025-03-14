@@ -1,6 +1,6 @@
 (library
  (name camel8)
- (libraries stdint lwt lambda-term))
+ (libraries stdint bogue lwt lambda-term))
 
 (include_subdirs unqualified)
 

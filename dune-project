@@ -14,7 +14,7 @@
 (package
  (name camel8)
  (synopsis "A Chip-8 interpreter in OCaml")
- (depends ocaml lwt lambda-term (alcotest :with-test)))
+ (depends ocaml stdint bogue lwt lambda-term (alcotest :with-test)))
 
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
