@@ -36,9 +36,9 @@ let execute ?(key = None) emu inst =
   | Jump t              -> (emu, Goto t)
   | JumpOffset off      -> let v0 = Cpu.get_register emu.cpu ~reg:Hex.Zero in
                            (emu, Goto Uint16.(of_uint8 v0 + off))
-  | CallSubroutine addr -> let e = { emu with cpu = Cpu.stack_push emu.cpu addr } in
+  | CallSubroutine addr -> let e = { emu with cpu = Cpu.stack_push emu.cpu } in
                            (e, Goto addr)
-  | Return              -> let (addr, cpu) = Cpu.stack_pop emu.cpu in
+  | Return              -> let addr, cpu = Cpu.stack_pop emu.cpu in
                            let e = { emu with cpu = cpu } in
                            (e, Goto addr)
   | SetN (x, n)         -> let e = { emu with cpu = Cpu.set_register emu.cpu ~reg:x ~data:n} in
@@ -78,7 +78,7 @@ let execute ?(key = None) emu inst =
                                      | EqR reg  -> fun l -> l = (Cpu.get_register emu.cpu ~reg)
                                      | NEqR reg -> fun l -> l <> (Cpu.get_register emu.cpu ~reg)
                                      end in
-                           let jump = if cmp xv then Skip else Next in
+                           let jump = if cmp xv then Next else Skip in
                            (emu, jump)
   | IfKeyPressed x      -> let xv = Cpu.get_register emu.cpu ~reg:x in
                            let jump = check_key key xv (=) in

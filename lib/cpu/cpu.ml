@@ -37,9 +37,11 @@ let get_delay cpu       = cpu.delay_timer
 let set_delay cpu ~data = { cpu with delay_timer = data }
 let set_sound cpu ~data = { cpu with sound_timer = data }
 
-let stack_push cpu addr = { cpu with stack = addr :: cpu.stack }
+let stack_push cpu  = { cpu with stack = cpu.pc :: cpu.stack }
 let stack_pop cpu =
-  let (addr, stack) = (List.hd cpu.stack, List.tl cpu.stack) in
+  print_endline "stack pop with stack: ";
+  List.iter (fun a -> Printf.printf "%s\n" (Uint16.to_string_hex a)) cpu.stack;
+  let addr, stack = (List.hd cpu.stack, List.tl cpu.stack) in
   (addr, { cpu with stack = stack })
 
 let pretty_stack ?(max_addrs = Int.max_int) cpu =

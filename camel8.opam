@@ -12,7 +12,6 @@ depends: [
   "bogue"
   "lwt"
   "lambda-term"
-  "alcotest" {with-test}
   "odoc" {with-doc}
 ]
 build: [

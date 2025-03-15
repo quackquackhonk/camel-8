@@ -41,7 +41,6 @@ let get_key c =
   CharMap.find_opt c mappings
 
 
-
 let rec handler ui state =
   LTerm_ui.wait ui >>= function
     (* Exit on C-c *)
@@ -109,7 +108,6 @@ let draw_frame ctx msg rect =
             (Zed_string.of_utf8 msg) LTerm_draw.Light in
   LTerm_draw.sub ctx (inner_rect rect)
 
-
 (** [draw_screen ctx size state] draws the display in [state] onto the context [ctx] of [size].*)
 let draw_screen ctx size state =
   (* Shrink the context to the size of the screen *)
@@ -118,7 +116,7 @@ let draw_screen ctx size state =
   let pxs = Display.to_bool_array state.emu.display in
   for r = 0 to 31 do
     for c = 0 to 63 do
-      let pixel = if pxs.(r).(c) then "X" else "." in
+      let pixel = if pxs.(r).(c) then "█" else " " in
       LTerm_draw.draw_styled ctx r c (eval [B_fg LTerm_style.lblue; S pixel; E_fg])
     done
   done
