@@ -36,10 +36,10 @@ let pretty ?(offset = 0) mem pc =
   let pci = Uint16.to_int pc in
   let (s, num) = if offset <= 0
                then (0, Bytes.length mem / 2)
-               else (pci - offset, offset * 2 + 1)
+               else (pci - (offset * 2), offset * 2 + 1)
   in
   (* Create list of addresses *)
-  let addrs = List.init num (fun a -> s + a) in
+  let addrs = List.init num (fun a -> s + (a * 2)) in
   let make_line addr =
     try let addr = Uint16.of_int addr in
         let pref = if addr = pc then ">" else " " in

@@ -36,7 +36,9 @@ let execute ?(key = None) emu inst =
   | Jump t              -> (emu, Goto t)
   | JumpOffset off      -> let v0 = Cpu.get_register emu.cpu ~reg:Hex.Zero in
                            (emu, Goto Uint16.(of_uint8 v0 + off))
-  | CallSubroutine addr -> let e = { emu with cpu = Cpu.stack_push emu.cpu } in
+  (* We add 2 because the return address is the instruction after the call *)
+  | CallSubroutine addr -> let ret_addr = Uint16.(emu.cpu.pc + of_int 2) in
+                           let e = { emu with cpu = Cpu.stack_push emu.cpu ret_addr } in
                            (e, Goto addr)
   | Return              -> let addr, cpu = Cpu.stack_pop emu.cpu in
                            let e = { emu with cpu = cpu } in

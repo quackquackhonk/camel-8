@@ -7,8 +7,13 @@ open LTerm_key
 
 type state = {
     emu: Emu.t;
-    key: Hex.t option
+    key: Hex.t option;
+    paused: bool
   }
+
+(*
+ * INPUT HANDLING
+ *)
 
 module CharMap = Map.Make(Char)
 (* 1234
@@ -36,30 +41,39 @@ let mappings =
   |> CharMap.add 'd' Hex.F
 
 
-let get_key c =
+let get_key_mapping c =
   let c = Uchar.to_char c in
   CharMap.find_opt c mappings
 
+let set_key state c =
+  let k = get_key_mapping c in
+  state := { !state with key = k }
 
 let rec handler ui state =
   LTerm_ui.wait ui >>= function
     (* Exit on C-c *)
-    | LTerm_event.Key { code = LTerm_key.Char c; control = true; _ } ->
-       if c = Uchar.of_char 'c'
-       then return ()
-       else handler ui state
-    (* Set key to any other pressed keys *)
-    | LTerm_event.Key { code = LTerm_key.Char c; _ } ->
-       let k = get_key c in
-       state := { !state with key =  k };
-       handler ui state
-    (* Don't do anything on other events *)
-    | x -> handler ui state
+  | LTerm_event.Key { code = LTerm_key.Char c; control = true; _ }
+       when c = Uchar.of_char 'c' -> return ()
+  | LTerm_event.Key { code = LTerm_key.Char c; control = true; _ }
+       when c = Uchar.of_char 'p' ->
+     state := { !state with paused = not !state.paused };
+     handler ui state
+  (* If paused, pressing n steps through the state. *)
+  | LTerm_event.Key { code = LTerm_key.Char c; _ }
+       when c = Uchar.of_char 'n' ->
+     state := { !state with emu = Emu.update ~key:!state.key !state.emu };
+     handler ui state
+  (* Set key to any other pressed keys *)
+  | LTerm_event.Key { code = LTerm_key.Char c; _ } ->
+     set_key state c;
+     handler ui state
+  (* Don't do anything on other events *)
+  | x -> handler ui state
 
 (* DRAWING CONSTANTS
                                    1     1 1       1                  1
    1+----------------------------+ +-----+ +-------+------------------+
-    |           64               | | 18  | |   8   |       31         |
+    |           64               | | 18  | |   8   |       32         |
     |                            | |     | |       |               10 |
     |                            | |     | |       |    registers     |
     |                            | |     | |       |                  |
@@ -86,7 +100,7 @@ let stack_size = { rows = 32; cols = 8 }
    Since its 2 per line, each row is line this
    ` A: 0bXXXXXXXX | A: 0bXXXXXXXX ` = 31 chars
  *)
-let registers_size = { rows = 10; cols = 31 }
+let registers_size = { rows = 10; cols = 32 }
 let cpu_size = {
     rows = 32;
     cols = stack_size.cols + 1 + registers_size.cols
@@ -98,6 +112,10 @@ let total_size = {
     cols = screen_frame_size.cols + memory_frame_size.cols + cpu_frame_size.cols
   }
 
+(*
+ * HELPER FUNCTIONS
+ *)
+
 let inner_rect rect = {
     row1 = rect.row1 + 1; row2 = rect.row2 - 1;
     col1 = rect.col1 + 1; col2 = rect.col2 - 1
@@ -107,6 +125,10 @@ let draw_frame ctx msg rect =
   let _ = LTerm_draw.draw_frame_labelled ctx rect ~alignment:H_align_center
             (Zed_string.of_utf8 msg) LTerm_draw.Light in
   LTerm_draw.sub ctx (inner_rect rect)
+
+(*
+ * RENDERING UTILS
+ *)
 
 (** [draw_screen ctx size state] draws the display in [state] onto the context [ctx] of [size].*)
 let draw_screen ctx size state =
@@ -121,6 +143,7 @@ let draw_screen ctx size state =
     done
   done
 
+(** [draw_memory ctx size state] draws the memory in [state] onto the context [ctx] of [size]. *)
 let draw_memory ctx size state =
   let mem_rect = { row1 = 0; col1 = 0; row2 = memory_size.rows + 1; col2 = memory_size.cols + 1 } in
   let ctx = draw_frame ctx "RAM" mem_rect in
@@ -158,10 +181,14 @@ let draw_cpu ctx size state =
   let misc_rect = { row1 = misc_start_y; row2 = total_size.rows - 1;
                     col1 = reg_start_x; col2 = registers_size.cols + reg_start_x + 2 } in
   let misc_ctx = draw_frame ctx "Misc" misc_rect in
-  let lines = [ Printf.sprintf "   PC: %s" (Pretty.uint16_to_bin_string state.emu.cpu.pc);
-                Printf.sprintf "Index: %s" (Pretty.uint16_to_bin_string state.emu.cpu.index);
-                Printf.sprintf "Sound: %s" (Pretty.uint8_to_bin_string state.emu.cpu.delay_timer);
-                Printf.sprintf "Delay: %s" (Pretty.uint8_to_bin_string state.emu.cpu.sound_timer) ]
+  let lines = [ Printf.sprintf "P: %s | %s"
+                  (Pretty.uint16_to_bin_string state.emu.cpu.pc)
+                  (Pretty.uint16_to_hex_string state.emu.cpu.pc);
+                Printf.sprintf "I: %s | %s"
+                  (Pretty.uint16_to_bin_string state.emu.cpu.index)
+                  (Pretty.uint16_to_hex_string state.emu.cpu.index);
+                Printf.sprintf "S: %s" (Pretty.uint8_to_bin_string state.emu.cpu.delay_timer);
+                Printf.sprintf "D: %s" (Pretty.uint8_to_bin_string state.emu.cpu.sound_timer) ]
   in
   let draw_misc i line =
     LTerm_draw.draw_styled misc_ctx (i + 1) 1 (eval [B_fg LTerm_style.lwhite; S line; E_fg]) in
@@ -193,10 +220,9 @@ let draw ui matrix state =
     draw_memory memory_ctx size state;
     draw_cpu cpu_ctx size state
 
-
 let impl ~debug emu =
   (* Wrap the emulator in a ref *)
-  let state = ref { emu = emu; key = None } in
+  let state = ref { emu = emu; key = None; paused = true } in
 
   (* Run in the standard terminal. *)
   Lazy.force LTerm.stdout >>= fun term ->
@@ -204,9 +230,14 @@ let impl ~debug emu =
   >>= fun ui ->
 
   (* Update the emulator state every 1/60th of a second. *)
-  let tick _ = state := { !state with emu = Emu.update ~key:!state.key !state.emu};
-               LTerm_ui.draw ui in
+  let tick _ =
+    if not !state.paused
+    then state := { !state with emu = Emu.update ~key:!state.key !state.emu};
+    LTerm_ui.draw ui
+  in
   ignore (Lwt_engine.on_timer (1.0 /. 60.0) true tick);
+
+  (* Actually start the app *)
   try Lwt.finalize (fun () -> handler ui state) (fun () -> LTerm_ui.quit ui)
   with Failure _ -> LTerm_ui.quit ui
 

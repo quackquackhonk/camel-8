@@ -29,7 +29,7 @@ val set_delay : t -> data:Stdint.uint8 -> t
 
 val set_sound : t -> data:Stdint.uint8 -> t
 
-val stack_push : t  -> t
+val stack_push : t -> uint16 -> t
 val stack_pop : t -> uint16 * t
 
 val pretty_stack : ?max_addrs:int -> t -> string list
